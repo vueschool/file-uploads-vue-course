@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const files = ref<File[]>([]);
 
-const allowedFileTypes = ["image/png", "image/jpeg", "image/jpg"];
+const allowedFileTypes = ["image/*", ".doc", ".docx"];
 
 function handleFileSelect(e: Event) {
   const input = e.target as HTMLInputElement;
@@ -15,14 +15,17 @@ function handleFileSelect(e: Event) {
     <label
       class="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700"
     >
-      <input type="file" multiple hidden @change="handleFileSelect" />
+      <input
+        type="file"
+        :accept="allowedFileTypes.join(',')"
+        multiple
+        hidden
+        @change="handleFileSelect"
+      />
       Upload
     </label>
     <p v-for="file in files" :key="file.name">
       {{ file.name }}
-      <span v-if="!allowedFileTypes.includes(file.type)" class="text-red-500">
-        File type not allowed
-      </span>
     </p>
   </div>
 </template>
