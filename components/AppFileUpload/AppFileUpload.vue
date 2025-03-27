@@ -1,5 +1,8 @@
 <script setup lang="ts">
 const files = ref<File[]>([]);
+
+const allowedFileTypes = ["image/png", "image/jpeg", "image/jpg"];
+
 function handleFileSelect(e: Event) {
   const input = e.target as HTMLInputElement;
   const filesAsArray = Array.from(input?.files || []); //FileList
@@ -17,6 +20,9 @@ function handleFileSelect(e: Event) {
     </label>
     <p v-for="file in files" :key="file.name">
       {{ file.name }}
+      <span v-if="!allowedFileTypes.includes(file.type)" class="text-red-500">
+        File type not allowed
+      </span>
     </p>
   </div>
 </template>
