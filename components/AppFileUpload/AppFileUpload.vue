@@ -1,7 +1,14 @@
 <script setup lang="ts">
 const files = ref<File[]>([]);
 
-const allowedFileTypes = ["image/*", ".doc", ".docx"];
+const allowedFileTypes = ["image/*", "video/*", ".doc", ".docx"];
+
+const maxMB = 5;
+const MAX_FILE_SIZE = maxMB * 1024 * 1024;
+
+function fileIsTooBig(file: File) {
+  return file.size > MAX_FILE_SIZE;
+}
 
 function handleFileSelect(e: Event) {
   const input = e.target as HTMLInputElement;
@@ -26,6 +33,10 @@ function handleFileSelect(e: Event) {
     </label>
     <p v-for="file in files" :key="file.name">
       {{ file.name }}
+
+      <span v-if="fileIsTooBig(file)" class="text-red-500">
+        File must be no larger than {{ maxMB }}
+      </span>
     </p>
   </div>
 </template>
