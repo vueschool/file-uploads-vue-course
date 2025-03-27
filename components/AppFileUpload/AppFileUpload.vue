@@ -16,6 +16,16 @@ function handleFileSelect(e: Event) {
   console.log(filesAsArray);
   files.value = files.value.concat(filesAsArray);
 }
+
+const previews = computed(() => {
+  return files.value.map((file) => {
+    if (file.type.startsWith("image")) {
+      return URL.createObjectURL(file);
+    } else {
+      return null;
+    }
+  });
+});
 </script>
 <template>
   <div>
@@ -31,8 +41,10 @@ function handleFileSelect(e: Event) {
       />
       Upload
     </label>
-    <p v-for="file in files" :key="file.name">
+    <p v-for="(file, index) in files" :key="file.name">
       {{ file.name }}
+
+      <img v-if="previews[index]" :src="previews[index]" :alt="file.name" />
 
       <span v-if="fileIsTooBig(file)" class="text-red-500">
         File must be no larger than {{ maxMB }}
