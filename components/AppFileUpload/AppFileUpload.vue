@@ -20,7 +20,15 @@ function handleFileSelect(e: Event) {
 const previews = computed(() => {
   return files.value.map((file) => {
     if (file.type.startsWith("image")) {
-      return URL.createObjectURL(file);
+      return {
+        type: "image",
+        url: URL.createObjectURL(file),
+      };
+    } else if (file.type.startsWith("video")) {
+      return {
+        type: "video",
+        url: URL.createObjectURL(file),
+      };
     } else {
       return null;
     }
@@ -44,7 +52,18 @@ const previews = computed(() => {
     <p v-for="(file, index) in files" :key="file.name">
       {{ file.name }}
 
-      <img v-if="previews[index]" :src="previews[index]" :alt="file.name" />
+      <img
+        v-if="previews[index]?.type === 'image'"
+        :src="previews[index].url"
+        :alt="file.name"
+      />
+      <video
+        v-if="previews[index]?.type === 'video'"
+        :src="previews[index].url"
+        autoplay
+        muted
+        loop
+      ></video>
 
       <span v-if="fileIsTooBig(file)" class="text-red-500">
         File must be no larger than {{ maxMB }}
