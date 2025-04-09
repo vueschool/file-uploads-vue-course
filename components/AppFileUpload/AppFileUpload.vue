@@ -10,10 +10,22 @@ function fileIsTooBig(file: File) {
   return file.size > MAX_FILE_SIZE;
 }
 
-function handleFileSelect(e: Event) {
+async function handleFileSelect(e: Event) {
   const input = e.target as HTMLInputElement;
   const filesAsArray = Array.from(input?.files || []); //FileList
-  console.log(filesAsArray);
+
+  const formData = new FormData();
+  filesAsArray.map((file) => {
+    formData.append(file.name, file);
+  });
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  console.log(response);
+
   files.value = files.value.concat(filesAsArray);
 }
 
