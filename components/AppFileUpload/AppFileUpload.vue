@@ -17,7 +17,16 @@ function handleFileSelect(e: Event) {
   files.value = files.value.concat(filesAsArray);
 }
 
-const previews = computed(() => {
+type Preview = { type: string; url: string } | null;
+const previews = computed<Preview[]>((oldPreviews) => {
+  // cleanup old previews
+  if (oldPreviews) {
+    oldPreviews.map((oldPreview) => {
+      if (oldPreview?.url) {
+        URL.revokeObjectURL(oldPreview.url);
+      }
+    });
+  }
   return files.value.map((file) => {
     if (file.type.startsWith("image")) {
       return {
@@ -31,6 +40,15 @@ const previews = computed(() => {
       };
     } else {
       return null;
+    }
+  });
+});
+
+// cleanup
+onUnmounted(() => {
+  previews.value.forEach((preview) => {
+    if (preview?.url) {
+      URL.revokeObjectURL(preview.url);
     }
   });
 });
