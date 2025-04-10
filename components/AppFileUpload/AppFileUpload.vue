@@ -41,7 +41,11 @@ async function handleFileSelect(e: Event) {
   };
   emit("uploaded:files", data.files);
 
-  files.value = files.value.concat(filesAsArray);
+  if (props.multiple) {
+    files.value = files.value.concat(filesAsArray);
+  } else {
+    files.value = filesAsArray;
+  }
 }
 
 type Preview = { type: string; url: string } | null;
@@ -82,18 +86,32 @@ onUnmounted(() => {
 </script>
 <template>
   <div>
-    <label
-      class="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer hover:bg-blue-700"
-    >
+    <div class="relative border border-dashed p-5 rounded text-center">
       <input
+        class="absolute inset-0 opacity-0"
         type="file"
         :accept="accept.join(',')"
         :multiple="multiple"
-        hidden
         @change="handleFileSelect"
       />
-      Upload
-    </label>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-12 w-12 mx-auto mb-4 text-gray-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+        />
+      </svg>
+
+      <span class="text-blue-500">Upload files </span>
+      <span>or drag and drop</span>
+    </div>
     <p v-for="(file, index) in files" :key="file.name">
       {{ file.name }}
 
