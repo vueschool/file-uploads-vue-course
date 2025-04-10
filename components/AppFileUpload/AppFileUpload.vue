@@ -111,7 +111,7 @@ onUnmounted(() => {
       ></video>
 
       <span v-if="fileIsTooBig(file)" class="text-red-500">
-        File must be no larger than {{ maxMB }}
+        File must be no larger than {{ maxMb }}
       </span>
     </p>
   </div>
