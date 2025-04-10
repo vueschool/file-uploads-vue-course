@@ -1,13 +1,25 @@
 <script setup lang="ts">
 const files = ref<File[]>([]);
 
-const allowedFileTypes = ["image/*", "video/*", ".doc", ".docx"];
+const props = withDefaults(
+  defineProps<{
+    accept?: string[];
+    maxMb?: number;
+    multiple?: boolean;
+  }>(),
+  {
+    accept: () => ["image/*", "video/*", ".doc", ".docx"],
+    maxMb: 5,
+    multiple: false,
+  }
+);
 
-const maxMB = 5;
-const MAX_FILE_SIZE = maxMB * 1024 * 1024;
+const emit = defineEmits<{
+  "uploaded:files": [files: { filename: string; url: string }[]];
+}>();
 
 function fileIsTooBig(file: File) {
-  return file.size > MAX_FILE_SIZE;
+  return file.size > props.maxMb * 1024 * 1024;
 }
 
 async function handleFileSelect(e: Event) {
@@ -24,7 +36,10 @@ async function handleFileSelect(e: Event) {
     body: formData,
   });
 
-  console.log(response);
+  const data = (await response.json()) as {
+    files: { filename: string; url: string }[];
+  };
+  emit("uploaded:files", data.files);
 
   files.value = files.value.concat(filesAsArray);
 }
@@ -72,8 +87,8 @@ onUnmounted(() => {
     >
       <input
         type="file"
-        :accept="allowedFileTypes.join(',')"
-        multiple
+        :accept="accept.join(',')"
+        :multiple="multiple"
         hidden
         @change="handleFileSelect"
       />
