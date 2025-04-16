@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import attrAccept from "attr-accept";
+
 const files = ref<File[]>([]);
+const isDragging = ref(false);
 
 const props = withDefaults(
   defineProps<{
@@ -28,18 +31,22 @@ async function handleFileSelect(e: Event) {
 
   const formData = new FormData();
   filesAsArray.map((file) => {
-    formData.append(file.name, file);
+    if (attrAccept(file, props.accept) && !fileIsTooBig(file)) {
+      formData.append(file.name, file);
+    }
   });
 
-  const response = await fetch("/api/upload", {
-    method: "POST",
-    body: formData,
-  });
+  if (Array.from(formData.values()).length) {
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-  const data = (await response.json()) as {
-    files: { filename: string; url: string }[];
-  };
-  emit("uploaded:files", data.files);
+    const data = (await response.json()) as {
+      files: { filename: string; url: string }[];
+    };
+    emit("uploaded:files", data.files);
+  }
 
   if (props.multiple) {
     files.value = files.value.concat(filesAsArray);
@@ -86,7 +93,14 @@ onUnmounted(() => {
 </script>
 <template>
   <div>
-    <div class="relative border border-dashed p-5 rounded text-center">
+    <div
+      class="relative border border-dashed p-5 rounded text-center"
+      :class="{ 'border-blue-500 bg-blue-50': isDragging }"
+      @dragenter="isDragging = true"
+      @dragover="isDragging = true"
+      @dragleave="isDragging = false"
+      @drop="isDragging = false"
+    >
       <input
         class="absolute inset-0 opacity-0"
         type="file"
@@ -130,6 +144,10 @@ onUnmounted(() => {
 
       <span v-if="fileIsTooBig(file)" class="text-red-500">
         File must be no larger than {{ maxMb }}
+      </span>
+      <span v-if="!attrAccept(file, accept)" class="text-red-500">
+        File type is not accepted. Acceptable types include:
+        {{ accept.join(", ") }}
       </span>
     </p>
   </div>

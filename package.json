@@ -14,6 +14,7 @@
     "@nuxt/icon": "^1.11.0",
     "@nuxt/image": "^1.10.0",
     "@tailwindcss/vite": "^4.0.14",
+    "attr-accept": "^2.2.5",
     "eslint": "^9.22.0",
     "nuxt": "^3.16.0",
     "tailwindcss": "^4.0.14",
