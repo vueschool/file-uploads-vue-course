@@ -55,6 +55,12 @@ async function handleFileSelect(e: Event) {
   }
 }
 
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + " B";
+  else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
+  else return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+}
+
 type Preview = { type: string; url: string } | null;
 const previews = computed<Preview[]>((oldPreviews) => {
   // cleanup old previews
@@ -92,9 +98,9 @@ onUnmounted(() => {
 });
 </script>
 <template>
-  <div>
+  <div class="w-full">
     <div
-      class="relative border border-dashed p-5 rounded text-center"
+      class="border border-gray-300 border-dashed rounded-lg p-8 text-center"
       :class="{ 'border-blue-500 bg-blue-50': isDragging }"
       @dragenter="isDragging = true"
       @dragover="isDragging = true"
@@ -102,53 +108,127 @@ onUnmounted(() => {
       @drop="isDragging = false"
     >
       <input
-        class="absolute inset-0 opacity-0"
+        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         type="file"
         :accept="accept.join(',')"
         :multiple="multiple"
         @change="handleFileSelect"
       />
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-12 w-12 mx-auto mb-4 text-gray-400"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-        />
-      </svg>
+      <div class="flex flex-col items-center">
+        <!-- Upload icon -->
+        <svg
+          class="w-12 h-12 text-gray-400 mb-3"
+          viewBox="0 0 64 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M48 42.6667V50.6667C48 51.7275 47.5786 52.7449 46.8284 53.4951C46.0783 54.2452 45.0609 54.6667 44 54.6667H20C18.9391 54.6667 17.9217 54.2452 17.1716 53.4951C16.4214 52.7449 16 51.7275 16 50.6667V42.6667"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M40 26.6667L32 18.6667L24 26.6667"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M32 18.6667V42.6667"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
 
-      <span class="text-blue-500">Upload files </span>
-      <span>or drag and drop</span>
+        <p class="text-lg">
+          <span class="text-blue-500 font-medium">Upload files</span> or drag
+          and drop
+        </p>
+        <p class="text-gray-500 text-sm mt-1">All files up to {{ maxMb }}MB</p>
+      </div>
     </div>
-    <p v-for="(file, index) in files" :key="file.name">
-      {{ file.name }}
 
-      <img
-        v-if="previews[index]?.type === 'image'"
-        :src="previews[index].url"
-        :alt="file.name"
-      />
-      <video
-        v-if="previews[index]?.type === 'video'"
-        :src="previews[index].url"
-        autoplay
-        muted
-        loop
-      ></video>
+    <!-- File list -->
+    <div class="mt-5 space-y-3">
+      <div
+        v-for="(file, index) in files"
+        :key="file.name"
+        class="flex items-center bg-white rounded-lg shadow-sm border border-gray-100 p-3"
+      >
+        <!-- Thumbnail -->
+        <div
+          class="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 mr-3"
+        >
+          <img
+            v-if="previews[index]?.type === 'image'"
+            :src="previews[index].url"
+            :alt="file.name"
+            class="w-full h-full object-cover"
+          />
+          <video
+            v-else-if="previews[index]?.type === 'video'"
+            :src="previews[index].url"
+            class="w-full h-full object-cover"
+          ></video>
+          <div v-else class="w-full h-full flex items-center justify-center">
+            <svg
+              class="w-6 h-6 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+        </div>
 
-      <span v-if="fileIsTooBig(file)" class="text-red-500">
-        File must be no larger than {{ maxMb }}
-      </span>
-      <span v-if="!attrAccept(file, accept)" class="text-red-500">
-        File type is not accepted. Acceptable types include:
-        {{ accept.join(", ") }}
-      </span>
-    </p>
+        <!-- File details -->
+        <div class="flex-grow">
+          <div class="text-sm font-medium">{{ file.name }}</div>
+          <div class="text-xs text-gray-500">
+            {{ formatFileSize(file.size) }}
+          </div>
+        </div>
+
+        <!-- Status indicator -->
+        <div class="flex items-center">
+          <span
+            v-if="attrAccept(file, accept) && !fileIsTooBig(file)"
+            class="text-sm text-green-600 bg-green-50 rounded-full px-3 py-0.5 flex items-center"
+          >
+            <svg
+              class="w-4 h-4 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            Done
+          </span>
+          <span
+            v-else
+            class="text-sm text-red-600 bg-red-50 rounded-full px-3 py-0.5"
+          >
+            Error
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

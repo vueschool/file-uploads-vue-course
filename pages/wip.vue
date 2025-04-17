@@ -1,5 +1,5 @@
 <template>
   <div>
-    <AppFileUpload />
+    <AppFileUpload multiple />
   </div>
 </template>
